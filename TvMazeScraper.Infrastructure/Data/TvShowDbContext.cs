@@ -8,7 +8,7 @@ using TvMazeScraper.Infrastructure.Models;
 
 namespace TvMazeScraper.Infrastructure.Data
 {
-    internal class TvShowDbContext : DbContext
+    public class TvShowDbContext : DbContext
     {
         public DbSet<TvShow> TvShows { get; set; }
         public DbSet<CastMember> CastMembers { get; set; }
