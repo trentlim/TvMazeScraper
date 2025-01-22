@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TvMazeScraper.Application.DTOs;
 using TvMazeScraper.Infrastructure.Data;
 using TvMazeScraper.Infrastructure.Models;
@@ -15,11 +16,16 @@ namespace TvMazeScraper.Application.Services
     {
         private readonly TvShowRepository _tvShowRepository;
         private readonly HttpClient _httpClient;
+        private readonly ILogger<TvMazeScraperService> _logger;
 
-        public TvMazeScraperService(TvShowRepository tvShowRepository, HttpClient httpClient)
+        public TvMazeScraperService(
+            TvShowRepository tvShowRepository,
+            HttpClient httpClient,
+            ILogger<TvMazeScraperService> logger)
         {
             _tvShowRepository = tvShowRepository;
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         // Scrape shows
@@ -36,7 +42,7 @@ namespace TvMazeScraper.Application.Services
 
                 ++pageNumber;
 
-                if (tasks.Count >= 20)
+                if (tasks.Count >= 50)
                 {
                     var results = await Task.WhenAll(tasks);
 
@@ -80,12 +86,13 @@ namespace TvMazeScraper.Application.Services
                 }
                 else
                 {
-                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}). Status code: {response.StatusCode}",null, response.StatusCode);
+                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}). Status code: {response.StatusCode}", null, response.StatusCode);
                 }
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}).", ex, ex.StatusCode);
+                _logger.LogError(ex, $"Failed to retrieve shows from TVMaze API (page {pageNumber}).");
+                return new List<TvMazeShowDto>();
             }
         }
 
