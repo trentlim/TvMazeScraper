@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.API", "TvMazeScraper.API\TvMazeScraper.API.csproj", "{D8D7365D-C7B9-401C-8F9E-6444AF5CAF7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.Infrastructure", "TvMazeScraper.Infrastructure\TvMazeScraper.Infrastructure.csproj", "{FCB0A84E-F6A9-4AF4-B935-B09FB463FFD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.Application", "TvMazeScraper.Application\TvMazeScraper.Application.csproj", "{FD1F8730-34C0-45E0-8619-D78FC87E1F84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FCB0A84E-F6A9-4AF4-B935-B09FB463FFD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCB0A84E-F6A9-4AF4-B935-B09FB463FFD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCB0A84E-F6A9-4AF4-B935-B09FB463FFD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
