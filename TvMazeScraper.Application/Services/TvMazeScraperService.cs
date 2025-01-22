@@ -46,7 +46,7 @@ namespace TvMazeScraper.Application.Services
                 }
                 else
                 {
-                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API. Status code: {response.StatusCode}");
+                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}). Status code: {response.StatusCode}");
                 }
 
                 ++pageNumber;
