@@ -78,6 +78,11 @@ namespace TvMazeScraper.Application.Services
 
         public async Task RunScraperAsync()
         {
+            if (_httpClient.BaseAddress is null)
+            {
+                throw new InvalidOperationException("Base address for TVMaze API is not set.");
+            }
+
             await ScrapeAllShowsAsync();
         }
     }
