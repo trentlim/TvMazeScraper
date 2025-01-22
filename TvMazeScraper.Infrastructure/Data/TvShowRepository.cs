@@ -13,11 +13,18 @@ namespace TvMazeScraper.Infrastructure.Data
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IEnumerable<TvShow>> GetTvShowsWithCastAsync()
+        public async Task<IEnumerable<TvShow>> GetAllTvShowsWithCastAsync()
         {
             return await _context.TvShows
                  .Include(t => t.Cast)
                  .ToListAsync();
+        }
+
+        public async Task<IEnumerable<int>> GetAllTvShowIdsAsync()
+        {
+            return await _context.TvShows
+                .Select(t=> t.Id)
+                .ToListAsync();
         }
 
         public async Task AddRangeAsync(IEnumerable<TvShow> tvShows)
