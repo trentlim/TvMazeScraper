@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TvMazeScraper.Application.DTOs;
 using TvMazeScraper.Infrastructure.Data;
+using TvMazeScraper.Infrastructure.Models;
 
 namespace TvMazeScraper.Application.Services
 {
@@ -38,7 +39,6 @@ namespace TvMazeScraper.Application.Services
                 else if (response.IsSuccessStatusCode)
                 {
                     var pageShows = await response.Content.ReadFromJsonAsync<List<TvMazeShowDto>>();
-                    if ()
                     if (pageShows is not null && pageShows.Count > 0)
                     {
                         shows.AddRange(pageShows);
@@ -51,15 +51,25 @@ namespace TvMazeScraper.Application.Services
 
                 ++pageNumber;
             }
+
+            await StoreTvShowsAsync(shows);
         }
 
         private async Task ScrapeCastForShowAsync()
         {
             throw new NotImplementedException();
         }
-        private async Task StoreTvShowsAsync(IEnumerable<TvMazeShowDto> shows)
+        private async Task StoreTvShowsAsync(IEnumerable<TvMazeShowDto> showDtos)
         {
-            throw new NotImplementedException();
+            var shows = showDtos.Select(s => new TvShow
+            {
+                Id = s.Id,
+                Name = s.Name
+            });
+            if (shows.Any())
+            {
+                await _tvShowRepository.AddRangeAsync(shows);
+            }
         }
         private async Task StoreCastMembersAsync(IEnumerable<TvMazeCastMemberDto> cast)
         {

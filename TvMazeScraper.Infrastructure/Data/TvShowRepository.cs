@@ -19,5 +19,11 @@ namespace TvMazeScraper.Infrastructure.Data
                  .Include(t => t.Cast)
                  .ToListAsync();
         }
+
+        public async Task AddRangeAsync(IEnumerable<TvShow> tvShows)
+        {
+            await _context.TvShows.AddRangeAsync(tvShows);
+            await _context.SaveChangesAsync();
+        }
     }
 }
