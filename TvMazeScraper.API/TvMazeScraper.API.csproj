@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TvMazeScraper.Application\TvMazeScraper.Application.csproj" />
     <ProjectReference Include="..\TvMazeScraper.Infrastructure\TvMazeScraper.Infrastructure.csproj" />
   </ItemGroup>
 
