@@ -25,7 +25,7 @@ namespace TvMazeScraper.Application.Services
         {
             var shows = new List<TvMazeShowDto>();
             var baseAddress = _httpClient.BaseAddress;
-            var pageNumber = 1;
+            var pageNumber = 0;
             var hasMorePages = true;
 
             while (hasMorePages)
@@ -38,6 +38,7 @@ namespace TvMazeScraper.Application.Services
                 else if (response.IsSuccessStatusCode)
                 {
                     var pageShows = await response.Content.ReadFromJsonAsync<List<TvMazeShowDto>>();
+                    if ()
                     if (pageShows is not null && pageShows.Count > 0)
                     {
                         shows.AddRange(pageShows);
