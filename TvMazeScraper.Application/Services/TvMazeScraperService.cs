@@ -22,43 +22,73 @@ namespace TvMazeScraper.Application.Services
             _httpClient = httpClient;
         }
 
+        // Scrape shows
         private async Task ScrapeAllShowsAsync()
         {
-            var shows = new List<TvMazeShowDto>();
-            var baseAddress = _httpClient.BaseAddress;
             var pageNumber = 0;
+            var tasks = new List<Task<List<TvMazeShowDto>>>();
             var hasMorePages = true;
 
             while (hasMorePages)
             {
+                var currentPage = pageNumber;
+                tasks.Add(FetchShowsForPageAsync(currentPage));
+
+                ++pageNumber;
+
+                if (tasks.Count >= 20)
+                {
+                    var results = await Task.WhenAll(tasks);
+
+                    // Check if the last task returned an empty list
+                    if (results.Last().Count == 0)
+                    {
+                        hasMorePages = false;
+                    }
+
+                    await StoreTvShowsAsync(results.SelectMany(r => r));
+                    tasks.Clear();
+                }
+            }
+
+            if (tasks.Count > 0)
+            {
+                var results = await Task.WhenAll(tasks);
+                await StoreTvShowsAsync(results.SelectMany(r => r));
+            }
+
+        }
+
+        private async Task<List<TvMazeShowDto>> FetchShowsForPageAsync(int pageNumber)
+        {
+            try
+            {
                 var response = await _httpClient.GetAsync($"shows?page={pageNumber}");
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    hasMorePages = false;
+                    return new List<TvMazeShowDto>();
                 }
                 else if (response.IsSuccessStatusCode)
                 {
                     var pageShows = await response.Content.ReadFromJsonAsync<List<TvMazeShowDto>>();
                     if (pageShows is not null && pageShows.Count > 0)
                     {
-                        shows.AddRange(pageShows);
+                        return pageShows;
                     }
+
+                    return new List<TvMazeShowDto>();
                 }
                 else
                 {
-                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}). Status code: {response.StatusCode}");
+                    throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}). Status code: {response.StatusCode}",null, response.StatusCode);
                 }
-
-                ++pageNumber;
             }
-
-            await StoreTvShowsAsync(shows);
+            catch (HttpRequestException ex)
+            {
+                throw new HttpRequestException($"Failed to retrieve shows from TVMaze API (page {pageNumber}).", ex, ex.StatusCode);
+            }
         }
 
-        private async Task ScrapeCastForShowAsync()
-        {
-            throw new NotImplementedException();
-        }
         private async Task StoreTvShowsAsync(IEnumerable<TvMazeShowDto> showDtos)
         {
             var shows = showDtos.Select(s => new TvShow
@@ -70,6 +100,12 @@ namespace TvMazeScraper.Application.Services
             {
                 await _tvShowRepository.AddRangeAsync(shows);
             }
+        }
+
+        // Scrape casts
+        private async Task ScrapeCastForShowAsync()
+        {
+            throw new NotImplementedException();
         }
         private async Task StoreCastMembersAsync(IEnumerable<TvMazeCastMemberDto> cast)
         {
