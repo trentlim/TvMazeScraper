@@ -42,7 +42,7 @@ namespace TvMazeScraper.Application.Services
 
                 ++pageNumber;
 
-                if (tasks.Count >= 50)
+                if (tasks.Count >= 20)
                 {
                     var results = await Task.WhenAll(tasks);
 
