@@ -31,38 +31,44 @@ namespace TvMazeScraper.Application.Services
         // Scrape shows
         private async Task ScrapeAllShowsAsync()
         {
-            var pageNumber = 0;
-            var tasks = new List<Task<List<TvMazeShowDto>>>();
-            var hasMorePages = true;
-
-            while (hasMorePages)
+            try
             {
-                var currentPage = pageNumber;
-                tasks.Add(FetchShowsForPageAsync(currentPage));
+                var pageNumber = 0;
+                var tasks = new List<Task<List<TvMazeShowDto>>>();
+                var hasMorePages = true;
 
-                ++pageNumber;
+                while (hasMorePages)
+                {
+                    var currentPage = pageNumber;
+                    tasks.Add(FetchShowsForPageAsync(currentPage));
 
-                if (tasks.Count >= 20)
+                    ++pageNumber;
+
+                    if (tasks.Count >= 20)
+                    {
+                        var results = await Task.WhenAll(tasks);
+
+                        // Check if the last task returned an empty list
+                        if (results.Last().Count == 0)
+                        {
+                            hasMorePages = false;
+                        }
+
+                        await StoreTvShowsAsync(results.SelectMany(r => r));
+                        tasks.Clear();
+                    }
+                }
+
+                if (tasks.Count > 0)
                 {
                     var results = await Task.WhenAll(tasks);
-
-                    // Check if the last task returned an empty list
-                    if (results.Last().Count == 0)
-                    {
-                        hasMorePages = false;
-                    }
-
                     await StoreTvShowsAsync(results.SelectMany(r => r));
-                    tasks.Clear();
                 }
             }
-
-            if (tasks.Count > 0)
+            catch (Exception ex)
             {
-                var results = await Task.WhenAll(tasks);
-                await StoreTvShowsAsync(results.SelectMany(r => r));
+                _logger.LogError(ex, "Failed to scrape shows from TVMaze API.");
             }
-
         }
 
         private async Task<List<TvMazeShowDto>> FetchShowsForPageAsync(int pageNumber)
