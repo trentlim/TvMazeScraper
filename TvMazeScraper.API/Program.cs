@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TvShowDbContext>(opt =>
     opt.UseInMemoryDatabase("SubscriptionAPI"));
 builder.Services.AddScoped<TvShowRepository>();
+builder.Services.AddScoped<CastMemberRepository>();
 
 // Scraper service
 builder.Services.AddHttpClient<TvMazeScraperService>(client =>
