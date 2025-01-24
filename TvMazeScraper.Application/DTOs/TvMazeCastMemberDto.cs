@@ -8,8 +8,9 @@ namespace TvMazeScraper.Application.DTOs
 {
     public class TvMazeCastMemberDto
     {
-        public required PersonInfo Person { get; set; }
-        public class PersonInfo
+        public required PersonDto Person { get; set; }
+        public int ShowId { get; set; }
+        public class PersonDto
         {
             public int Id { get; set; }
             public required string Name { get; set; }
