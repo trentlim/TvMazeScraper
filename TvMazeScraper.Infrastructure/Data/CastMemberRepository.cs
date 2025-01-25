@@ -16,7 +16,8 @@ namespace TvMazeScraper.Infrastructure.Data
         public async Task<CastMember?> FindAsync(int id)
         {
             return await _context.CastMembers
-                .FindAsync(id);
+                .Include(c => c.TvShows)    
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task AddNewCastMembersAsync(IEnumerable<CastMember> castMembers)
         {
