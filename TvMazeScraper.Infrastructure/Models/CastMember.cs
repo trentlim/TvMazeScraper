@@ -11,8 +11,8 @@ namespace TvMazeScraper.Infrastructure.Models
         public int Id { get; set; }
         public required string Name { get; set; }
         public DateOnly? Birthday { get; set; }
-        public ICollection<TvShow> TvShows { get; set; } = new List<TvShow>();
-        public override bool Equals(object obj)
+        public required ICollection<TvShow> TvShows { get; set; }
+        public override bool Equals(object? obj)
         {
             CastMember? c = obj as CastMember;
             return c != null 

@@ -201,6 +201,7 @@ namespace TvMazeScraper.Application.Services
                         Id = member.Person.Id,
                         Name = member.Person.Name,
                         Birthday = member.Person.Birthday,
+                        TvShows = new List<TvShow> { show }
                     });
                 }
 
@@ -222,6 +223,8 @@ namespace TvMazeScraper.Application.Services
             await ScrapeAllShowsAsync();
             var showIds = await _tvShowRepository.GetAllTvShowIdsAsync();
             await ScrapeCastForAllShowsAsync(showIds);
+            var x = await _tvShowRepository.GetAllTvShowsWithCastAsync();
+            var y = x.Last();
         }
     }
 }
