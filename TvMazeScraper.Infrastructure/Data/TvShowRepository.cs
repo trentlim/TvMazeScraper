@@ -20,6 +20,12 @@ namespace TvMazeScraper.Infrastructure.Data
                  .ToListAsync();
         }
 
+        public async Task<TvShow?> FindAsync(int id)
+        {
+            return await _context.TvShows
+                .FindAsync(id);
+        }
+
         public async Task<IEnumerable<int>> GetAllTvShowIdsAsync()
         {
             return await _context.TvShows
