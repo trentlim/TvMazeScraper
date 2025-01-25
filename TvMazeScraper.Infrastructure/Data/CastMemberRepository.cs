@@ -13,10 +13,26 @@ namespace TvMazeScraper.Infrastructure.Data
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task AddRangeAsync(IEnumerable<CastMember> castMembers)
+        public async Task<CastMember?> FindAsync(int id)
         {
-            await _context.CastMembers.AddRangeAsync(castMembers);
-            await _context.SaveChangesAsync();
+            return await _context.CastMembers
+                .FindAsync(id);
+        }
+        public async Task AddNewCastMembersAsync(IEnumerable<CastMember> castMembers)
+        {
+            var castMemberIds = castMembers.Select(c => c.Id).ToList();
+
+            var existingIds = await _context.CastMembers
+                .Where(c => castMemberIds.Contains(c.Id))
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            var newCastMembers = castMembers.Where(c => !existingIds.Contains(c.Id));
+            if (newCastMembers.Any())
+            {
+                await _context.CastMembers.AddRangeAsync(newCastMembers);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

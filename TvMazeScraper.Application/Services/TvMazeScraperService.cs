@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
@@ -15,15 +16,19 @@ namespace TvMazeScraper.Application.Services
     public class TvMazeScraperService
     {
         private readonly TvShowRepository _tvShowRepository;
+        private readonly CastMemberRepository _castMemberRepository;
         private readonly HttpClient _httpClient;
         private readonly ILogger<TvMazeScraperService> _logger;
 
         public TvMazeScraperService(
             TvShowRepository tvShowRepository,
+            CastMemberRepository castMemberRepository,
             HttpClient httpClient,
-            ILogger<TvMazeScraperService> logger)
+            ILogger<TvMazeScraperService> logger
+        )
         {
             _tvShowRepository = tvShowRepository;
+            _castMemberRepository = castMemberRepository;
             _httpClient = httpClient;
             _logger = logger;
         }
@@ -104,6 +109,8 @@ namespace TvMazeScraper.Application.Services
 
         private async Task StoreTvShowsAsync(IEnumerable<TvMazeShowDto> showDtos)
         {
+            if (!showDtos.Any()) { return; }
+
             var shows = showDtos.Select(s => new TvShow
             {
                 Id = s.Id,
@@ -116,13 +123,93 @@ namespace TvMazeScraper.Application.Services
         }
 
         // Scrape casts
-        private async Task ScrapeCastForShowAsync()
+        private async Task ScrapeCastForAllShowsAsync(IEnumerable<int> showIds)
         {
-            throw new NotImplementedException();
+            if (!showIds.Any()) { return; }
+
+            var tasks = new List<Task<List<TvMazeCastMemberDto>>>();
+            foreach (var showId in showIds)
+            {
+                tasks.Add(FetchCastForShowAsync(showId));
+
+                if (tasks.Count >= 20)
+                {
+                    var results = await Task.WhenAll(tasks);
+                    await StoreCastMembersAsync(results.SelectMany(r => r));
+                    tasks.Clear();
+                }
+            }
+
+            if (tasks.Count > 0)
+            {
+                var results = await Task.WhenAll(tasks);
+                await StoreCastMembersAsync(results.SelectMany(r => r));
+            }
         }
-        private async Task StoreCastMembersAsync(IEnumerable<TvMazeCastMemberDto> cast)
+        private async Task<List<TvMazeCastMemberDto>> FetchCastForShowAsync(int showId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var response = await _httpClient.GetAsync($"shows/{showId}/cast");
+                if (response.IsSuccessStatusCode)
+                {
+                    var cast = await response.Content.ReadFromJsonAsync<List<TvMazeCastMemberDto>>();
+                    if (cast is not null && cast.Count > 0)
+                    {
+                        foreach (var member in cast)
+                        {
+                            member.ShowId = showId;
+                        }
+                        return cast;
+                    }
+
+                    return new List<TvMazeCastMemberDto>();
+                }
+                else
+                {
+                    throw new HttpRequestException($"Failed to retrieve cast from TVMaze API (showId: {showId}). Status code: {response.StatusCode}", null, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to retrieve cast from TVMaze API (showId: {showId}).");
+                return new List<TvMazeCastMemberDto>();
+            }
+        }
+
+        private async Task StoreCastMembersAsync(IEnumerable<TvMazeCastMemberDto> castDtos)
+        {
+            try
+            {
+                if (!castDtos.Any()) { return; }
+
+                var cast = new HashSet<CastMember>();
+                foreach (var member in castDtos)
+                {
+                    var show = await _tvShowRepository.FindAsync(member.ShowId)
+                        ?? throw new KeyNotFoundException($"TV show with ID {member.ShowId} not found when attempting to add cast to show");
+
+                    var existingCastMember = await _castMemberRepository.FindAsync(member.Person.Id);
+                    if (existingCastMember is not null)
+                    {
+                        existingCastMember.TvShows.Add(show);
+                        continue;
+                    }
+
+                    cast.Add(new CastMember
+                    {
+                        Id = member.Person.Id,
+                        Name = member.Person.Name,
+                        Birthday = member.Person.Birthday,
+                    });
+                }
+
+                await _castMemberRepository.AddNewCastMembersAsync(cast);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error when storing cast members in database.");
+            }
         }
 
         public async Task RunScraperAsync()
@@ -133,6 +220,8 @@ namespace TvMazeScraper.Application.Services
             }
 
             await ScrapeAllShowsAsync();
+            var showIds = await _tvShowRepository.GetAllTvShowIdsAsync();
+            await ScrapeCastForAllShowsAsync(showIds);
         }
     }
 }

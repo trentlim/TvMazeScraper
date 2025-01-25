@@ -21,7 +21,7 @@ namespace TvMazeScraper.Infrastructure.Data
         {
             modelBuilder.Entity<TvShow>()
                 .HasMany(e => e.Cast)
-                .WithMany();
+                .WithMany(e => e.TvShows);
         }
     }
 }
