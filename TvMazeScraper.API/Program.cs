@@ -11,8 +11,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-builder.Services.AddDbContext<TvShowDbContext>(opt =>
-    opt.UseInMemoryDatabase("SubscriptionAPI"));
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string"
+        + "'DefaultConnection' not found.");
+builder.Services.AddDbContext<TvShowDbContext>(options =>
+    options.UseSqlite(connectionString));
 builder.Services.AddScoped<TvShowRepository>();
 builder.Services.AddScoped<CastMemberRepository>();
 
@@ -25,9 +29,13 @@ builder.Services.AddHttpClient<TvMazeScraperService>(client =>
 
 var app = builder.Build();
 
-// Run the scraper before starting the application
 using (var scope = app.Services.CreateScope())
 {
+    // Ensure the database has been created
+    var dbContext = scope.ServiceProvider.GetService<TvShowDbContext>();
+    dbContext.Database.EnsureCreated();
+
+    // run the scraper before starting the application
     var scraperService = scope.ServiceProvider.GetRequiredService<TvMazeScraperService>();
     await scraperService.RunScraperAsync();
 }
