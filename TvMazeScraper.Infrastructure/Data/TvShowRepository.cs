@@ -13,12 +13,14 @@ namespace TvMazeScraper.Infrastructure.Data
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IEnumerable<TvShow>> GetAllTvShowsWithCastAsync()
+        public async Task<IEnumerable<TvShow>> GetPaginatedTvShowsWithCastAsync(int pageNumber, int pageSize)
         {
             return await _context.TvShows
                  .Include(tvShow => tvShow.Cast
                      .OrderByDescending(castMember => castMember.Birthday))
-                 .OrderBy(t => t.Id)
+                 .OrderBy(tvShow => tvShow.Id)
+                 .Where(tvShow => tvShow.Id > (pageNumber - 1) * pageSize)
+                 .Take(pageSize)
                  .ToListAsync();
         }
 
