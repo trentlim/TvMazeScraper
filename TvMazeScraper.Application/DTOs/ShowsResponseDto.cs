@@ -14,7 +14,7 @@ namespace TvMazeScraper.Application.DTOs
     {
         public int Id { get; set; }
         public required string Name { get; set; }
-        public ICollection<CastMemberDto> Cast { get; set; } = new List<CastMemberDto>();
+        public required ICollection<CastMemberDto> Cast { get; set; }
         public class CastMemberDto
         {
             public int Id { get; set; }
