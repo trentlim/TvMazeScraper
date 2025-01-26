@@ -16,7 +16,8 @@ namespace TvMazeScraper.Infrastructure.Data
         public async Task<IEnumerable<TvShow>> GetAllTvShowsWithCastAsync()
         {
             return await _context.TvShows
-                 .Include(t => t.Cast)
+                 .Include(tvShow => tvShow.Cast
+                     .OrderByDescending(castMember => castMember.Birthday))
                  .OrderBy(t => t.Id)
                  .ToListAsync();
         }
