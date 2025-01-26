@@ -27,6 +27,9 @@ builder.Services.AddHttpClient<TvMazeScraperService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+// TvShow Service
+builder.Services.AddScoped<TvShowService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -35,7 +38,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetService<TvShowDbContext>();
     dbContext.Database.EnsureCreated();
 
-    // run the scraper before starting the application
+    // Run the scraper before starting the application
     var scraperService = scope.ServiceProvider.GetRequiredService<TvMazeScraperService>();
     await scraperService.RunScraperAsync();
 }

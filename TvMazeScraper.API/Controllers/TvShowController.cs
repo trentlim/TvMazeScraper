@@ -1,82 +1,36 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TvMazeScraper.Application.DTOs;
+using TvMazeScraper.Application.Services;
+using TvMazeScraper.Infrastructure.Models;
 
 namespace TvMazeScraper.API.Controllers
 {
-    public class TvShowController : Controller
+    [ApiController]
+    public class TvShowController : ControllerBase
     {
-        // GET: TvShowController
-        public ActionResult Index()
+        private readonly ILogger<TvShowController> _logger;
+        private readonly TvShowService _tvShowService;
+        public TvShowController(ILogger<TvShowController> logger, TvShowService tvShowService)
         {
-            return View();
+            _logger = logger;
+            _tvShowService = tvShowService;
         }
 
-        // GET: TvShowController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: TvShowController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: TvShowController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        // GET /shows
+        [HttpGet]
+        [Route("shows")]
+        public async Task<ActionResult<IEnumerable<ShowsResponseDto>>> GetShows([FromQuery] ShowsRequestDto request)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                var shows = await _tvShowService.GetPaginatedTvShowsWithCastAsync(request.PageNumber, request.PageSize);
+                return Ok(shows);
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
-            }
-        }
-
-        // GET: TvShowController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: TvShowController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: TvShowController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: TvShowController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
+                _logger.LogError(ex, "An error occurred while calling GET /shows endpoint.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     }

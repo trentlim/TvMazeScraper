@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TvMazeScraper.Common\TvMazeScraper.Common.csproj" />
     <ProjectReference Include="..\TvMazeScraper.Infrastructure\TvMazeScraper.Infrastructure.csproj" />
   </ItemGroup>
 
