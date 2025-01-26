@@ -19,7 +19,7 @@ namespace TvMazeScraper.Infrastructure.Data
                  .Include(tvShow => tvShow.Cast
                      .OrderByDescending(castMember => castMember.Birthday))
                  .OrderBy(tvShow => tvShow.Id)
-                 .Where(tvShow => tvShow.Id > (pageNumber - 1) * pageSize)
+                 .Skip((pageNumber - 1) * pageSize)
                  .Take(pageSize)
                  .ToListAsync();
         }
