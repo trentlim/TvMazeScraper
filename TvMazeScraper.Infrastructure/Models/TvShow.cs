@@ -10,6 +10,6 @@ namespace TvMazeScraper.Infrastructure.Models
     {
         public int Id { get; set; }
         public required string Name { get; set; }
-        public ICollection<CastMember> Cast { get; set; } = new List<CastMember>();
+        public IList<CastMember> Cast { get; set; } = new List<CastMember>();
     }
 }
