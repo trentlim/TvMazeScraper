@@ -223,8 +223,6 @@ namespace TvMazeScraper.Application.Services
             await ScrapeAllShowsAsync();
             var showIds = await _tvShowRepository.GetAllTvShowIdsAsync();
             await ScrapeCastForAllShowsAsync(showIds);
-            var x = await _tvShowRepository.GetAllTvShowsWithCastAsync();
-            var y = x.Last();
         }
     }
 }
