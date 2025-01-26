@@ -17,6 +17,7 @@ namespace TvMazeScraper.Infrastructure.Data
         {
             return await _context.TvShows
                  .Include(t => t.Cast)
+                 .OrderBy(t => t.Id)
                  .ToListAsync();
         }
 
