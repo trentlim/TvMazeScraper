@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.Infrastructur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.Application", "TvMazeScraper.Application\TvMazeScraper.Application.csproj", "{FD1F8730-34C0-45E0-8619-D78FC87E1F84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvMazeScraper.Common", "TvMazeScraper.Common\TvMazeScraper.Common.csproj", "{C7E4C280-85EE-4879-9D33-AD1D74B05CED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD1F8730-34C0-45E0-8619-D78FC87E1F84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7E4C280-85EE-4879-9D33-AD1D74B05CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7E4C280-85EE-4879-9D33-AD1D74B05CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7E4C280-85EE-4879-9D33-AD1D74B05CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7E4C280-85EE-4879-9D33-AD1D74B05CED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
