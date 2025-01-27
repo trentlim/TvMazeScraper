@@ -4,10 +4,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 using Microsoft.Extensions.Logging;
 using TvMazeScraper.Application.DTOs;
+using TvMazeScraper.Application.Exceptions;
 using TvMazeScraper.Infrastructure.Data;
 using TvMazeScraper.Infrastructure.Models;
 
@@ -125,27 +128,79 @@ namespace TvMazeScraper.Application.Services
         // Scrape casts
         private async Task ScrapeCastForAllShowsAsync(IEnumerable<int> showIds)
         {
-            if (!showIds.Any()) { return; }
-
-            var tasks = new List<Task<List<TvMazeCastMemberDto>>>();
-            foreach (var showId in showIds)
+            try
             {
-                tasks.Add(FetchCastForShowAsync(showId));
+                if (!showIds.Any()) { return; }
 
-                if (tasks.Count >= 20)
+                var batch = new List<int>();
+                foreach (var showId in showIds)
                 {
-                    var results = await Task.WhenAll(tasks);
-                    await StoreCastMembersAsync(results.SelectMany(r => r));
-                    tasks.Clear();
+                    batch.Add(showId);
+                    if (batch.Count < 20) continue;
+
+                    await RunBatchWithRateLimitHandlingAsync(batch);
+                    batch.Clear();
+                }
+
+                if (batch.Count > 0)
+                {
+                    await RunBatchWithRateLimitHandlingAsync(batch);
                 }
             }
-
-            if (tasks.Count > 0)
+            catch (Exception ex)
             {
-                var results = await Task.WhenAll(tasks);
-                await StoreCastMembersAsync(results.SelectMany(r => r));
+                _logger.LogError(ex, "Failed to scrape cast members from TVMaze API.");
             }
         }
+
+        private async Task RunBatchWithRateLimitHandlingAsync(IEnumerable<int> showIds)
+        {
+            var tasksByShowId = showIds.ToDictionary(id => id, id => FetchCastForShowAsync(id));
+            var results = new List<TvMazeCastMemberDto>();
+            while (tasksByShowId.Count != 0)
+            {
+                try
+                {
+                    await Task.WhenAll(tasksByShowId.Values);
+
+                    // If no exceptions are thrown, store successful tasks
+                    var succeded = tasksByShowId
+                        .Where(t => t.Value.IsCompletedSuccessfully)
+                        .ToList();
+
+                    foreach (var (showId, task) in succeded)
+                    {
+                        results.AddRange(task.Result);
+                        tasksByShowId.Remove(showId);
+                    }
+
+                }
+                catch (RateLimitExceededException ex)
+                {
+                    // Store successful tasks 
+                    var succeded = tasksByShowId
+                        .Where(t => t.Value.IsCompletedSuccessfully)
+                        .ToList();
+                    foreach (var (showId, task) in succeded)
+                    {
+                        results.AddRange(task.Result);
+                        tasksByShowId.Remove(showId);
+                    };
+
+                    // Wait the required time
+                    var retryAfter = ex.RetryAfter?.TotalSeconds ?? 10.0;
+                    _logger.LogWarning($"Rate limit hit, waiting {retryAfter} seconds");
+                    await Task.Delay(TimeSpan.FromSeconds(retryAfter));
+
+                    // Recreate failed tasks
+                    var failedShowIds = tasksByShowId.Keys.ToList();
+                    tasksByShowId.Clear();
+                    tasksByShowId = failedShowIds.ToDictionary(id => id, id => FetchCastForShowAsync(id));
+                }
+            }
+            await StoreCastMembersAsync(results);
+        }
+
         private async Task<List<TvMazeCastMemberDto>> FetchCastForShowAsync(int showId)
         {
             try
@@ -165,10 +220,20 @@ namespace TvMazeScraper.Application.Services
 
                     return new List<TvMazeCastMemberDto>();
                 }
+                else if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    var retryAfter = response?.Headers?.RetryAfter?.Delta;
+                    throw new RateLimitExceededException($"Too many requests to TVMaze API (showId: {showId})") { RetryAfter = retryAfter };
+                }
                 else
                 {
                     throw new HttpRequestException($"Failed to retrieve cast from TVMaze API (showId: {showId}). Status code: {response.StatusCode}", null, response.StatusCode);
                 }
+            }
+            catch (RateLimitExceededException ex)
+            {
+                _logger.LogWarning(ex, $"Too many requests to TVMaze API (showId: {showId}).");
+                throw;
             }
             catch (Exception ex)
             {
