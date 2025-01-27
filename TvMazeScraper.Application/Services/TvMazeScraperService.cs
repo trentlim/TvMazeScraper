@@ -42,7 +42,7 @@ namespace TvMazeScraper.Application.Services
             try
             {
                 var pageNumber = 0;
-                var tasks = new List<Task<List<TvMazeShowDto>>>();
+                var tasks = new List<Task<List<TvMazeShowDto>?>>();
                 var hasMorePages = true;
 
                 while (hasMorePages)
@@ -57,7 +57,7 @@ namespace TvMazeScraper.Application.Services
                         var results = await Task.WhenAll(tasks);
 
                         // Check if the last task returned an empty list
-                        if (results.Last().Count == 0)
+                        if (results.Last() != null && results.Last().Count == 0)
                         {
                             hasMorePages = false;
                         }
@@ -79,7 +79,7 @@ namespace TvMazeScraper.Application.Services
             }
         }
 
-        private async Task<List<TvMazeShowDto>> FetchShowsForPageAsync(int pageNumber)
+        private async Task<List<TvMazeShowDto>?> FetchShowsForPageAsync(int pageNumber)
         {
             try
             {
@@ -88,15 +88,11 @@ namespace TvMazeScraper.Application.Services
                 {
                     return new List<TvMazeShowDto>();
                 }
-                else if (response.IsSuccessStatusCode)
+
+                if (response.IsSuccessStatusCode)
                 {
                     var pageShows = await response.Content.ReadFromJsonAsync<List<TvMazeShowDto>>();
-                    if (pageShows is not null && pageShows.Count > 0)
-                    {
-                        return pageShows;
-                    }
-
-                    return new List<TvMazeShowDto>();
+                    return pageShows;
                 }
                 else
                 {
@@ -106,7 +102,7 @@ namespace TvMazeScraper.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed to retrieve shows from TVMaze API (page {pageNumber}).");
-                return new List<TvMazeShowDto>();
+                return null;
             }
         }
 
