@@ -112,16 +112,23 @@ namespace TvMazeScraper.Application.Services
 
         private async Task StoreTvShowsAsync(IEnumerable<TvMazeShowDto> showDtos)
         {
-            if (!showDtos.Any()) { return; }
+            try
+            {
+                if (!showDtos.Any()) { return; }
 
-            var shows = showDtos.Select(s => new TvShow
+                var shows = showDtos.Select(s => new TvShow
+                {
+                    Id = s.Id,
+                    Name = s.Name
+                });
+                if (shows.Any())
+                {
+                    await _tvShowRepository.AddRangeAsync(shows);
+                }
+            }
+            catch (Exception ex)
             {
-                Id = s.Id,
-                Name = s.Name
-            });
-            if (shows.Any())
-            {
-                await _tvShowRepository.AddRangeAsync(shows);
+                _logger.LogError(ex, "Error when storing TV shows in database.");
             }
         }
 
