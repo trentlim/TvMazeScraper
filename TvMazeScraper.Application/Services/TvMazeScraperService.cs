@@ -132,20 +132,16 @@ namespace TvMazeScraper.Application.Services
             {
                 if (!showIds.Any()) { return; }
 
-                var batch = new List<int>();
-                foreach (var showId in showIds)
-                {
-                    batch.Add(showId);
-                    if (batch.Count < 20) continue;
+                var chunks = showIds
+                    .Chunk(20)
+                    .Select(chunk => chunk.ToList())
+                    .ToList();
 
-                    await RunBatchWithRateLimitHandlingAsync(batch);
-                    batch.Clear();
+                foreach (var chunk in chunks)
+                {
+                    await RunBatchWithRateLimitHandlingAsync(chunk);
                 }
 
-                if (batch.Count > 0)
-                {
-                    await RunBatchWithRateLimitHandlingAsync(batch);
-                }
             }
             catch (Exception ex)
             {
